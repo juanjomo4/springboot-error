@@ -6,11 +6,13 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import com.juanjo.curso.springboot.error.springboot_error.exceptions.UserNotFoundException;
 import com.juanjo.curso.springboot.error.springboot_error.models.ErrorModels;
 
 @RestControllerAdvice
@@ -27,6 +29,32 @@ public class HandlerExceptionController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    @ExceptionHandler(NumberFormatException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, Object> numberFormatException(Exception ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("Date", new Date().toString());
+        error.put("Error", "NumberFormatException, número no válido");
+        error.put("Message", "Error de formato en el número, no tiene formato de dígito. " + ex.getMessage());
+        error.put("Status", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+        return error;
+    }
+
+    @ExceptionHandler({ NullPointerException.class,
+            HttpMessageNotWritableException.class,
+            UserNotFoundException.class })
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, Object> userNotFoundException(Exception ex) {
+
+        Map<String, Object> error = new HashMap<>();
+        error.put("date", new Date());
+        error.put("error", "el usuario o role no existe!");
+        error.put("message", ex.getMessage());
+        error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+
+        return error;
+    }
+
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorModels> notFoundEx(NoHandlerFoundException ex) {
         ErrorModels error = new ErrorModels();
@@ -38,17 +66,6 @@ public class HandlerExceptionController {
         // return ResponseEntity.notFound().build();
         // return ResponseEntity.status(404).body(error);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-    }
-
-    @ExceptionHandler(NumberFormatException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, Object> numberFormatException(Exception ex) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("Date", new Date().toString());
-        error.put("Error", "NumberFormatException, número no válido");
-        error.put("Message", "Error de formato en el número, no tiene formato de dígito. " + ex.getMessage());
-        error.put("Status", String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        return error;
     }
 
 }
